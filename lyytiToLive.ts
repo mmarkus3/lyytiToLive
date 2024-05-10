@@ -51,10 +51,11 @@ function getSport(sportItem: string, athlete: string) {
   return `&${entryIndex}${delimiter}${athlete}${delimiter}${it.klass}${delimiter}${it.age}${delimiter}${sportCode}${delimiter}${delimiter}`;
 }
 
-function getAthlete(row: string) {
+function getAthlete(row: string, index: number) {
   const [ num, firstname, lastname, _email, _phone, sport1, sport2 ] = row.split(sourceDelimiter);
   const gender = getGender(sport1);
-  const athlete = `${num.trim()}${delimiter}${lastname}${delimiter}${firstname}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
+  const licenseCode = `S${100 + index}`;
+  const athlete = `${num.trim()}${delimiter}${lastname}${delimiter}${firstname}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
   const firstEntry = getSport(sport1.replace('"', '').trim(), num.trim());
   const secondEntry = getSport(sport2.replace('"', '').trim(), num.trim());
   return { athlete, firstEntry, secondEntry };
@@ -80,8 +81,8 @@ readFile(sourceFileName, 'utf8', (err, data) => {
   }
   const result = [];
   const rows = data.split(linebreak);
-  rows.map((row) => {
-    const item = getAthlete(row);
+  rows.map((row, index) => {
+    const item = getAthlete(row, index);
     result.push(item.athlete);
     if (item.firstEntry !== '') {
       result.push(item.firstEntry);
