@@ -1,6 +1,18 @@
 import { writeFileSync, readFile } from 'fs';
 import * as XLSX from 'xlsx';
 import * as Papa from 'papaparse';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { cookie, licenseUrl } from './cookie'
+
+
+interface LicenceItem {
+  LicenceId: string;
+  Firstname: string;
+  Surname: string;
+  DOB: string;
+  Organization: { Name: string; NameShort: string }
+}
 
 interface KllItem {
   '': number;
@@ -71,6 +83,16 @@ function convertSport(sport: string) {
   }
 }
 
+function getAthleteFromDb(q: string) {
+  return axios.post(licenseUrl, { q }, { withCredentials: true, headers: { cookie } }
+  ).then((response) => {
+    if (response.data.results.length === 1) {
+      const item = response.data.results[0] as LicenceItem;
+      return item;
+    }
+  });
+}
+
 function getGender(sport: string) {
   if (sport.includes('Pojat')) {
     return 'M';
@@ -89,11 +111,16 @@ function getSport(sportItem: string, athlete: number, klass: string, age: string
   })
 }
 
-function getAthlete(row: KllItem) {
+async function getAthlete(row: KllItem) {
   const gender = getGender(row['Osallistujan sarja']);
   const licenseCode = `${row['Sportti-ID: ']}`;
-  const abbr = `${row['Koulu jota osallistuja edustaa'][0]}${row['Koulu jota osallistuja edustaa'][1]}${row['Koulu jota osallistuja edustaa'][2]}${row['Koulu jota osallistuja edustaa'][3]}`;
-  const athlete = `${row['']}${delimiter}${row.Sukunimi}${delimiter}${row.Etunimi}${delimiter}${row['Koulu jota osallistuja edustaa']}${delimiter}${abbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
+  const athleteDB = await getAthleteFromDb(licenseCode);
+  if (row.Sukunimi !== athleteDB.Surname || row.Etunimi !== athleteDB.Firstname) {
+    console.error('Väärä urheilija', row[''], row.Sukunimi, athleteDB.Surname, row.Etunimi, athleteDB.Firstname, licenseCode);
+    return;
+  }
+  const dob = new Date(athleteDB.DOB);
+  const athlete = `${row['']}${delimiter}${row.Sukunimi}${delimiter}${row.Etunimi}${delimiter}${athleteDB.Organization.Name}${delimiter}${athleteDB.Organization.NameShort}${delimiter}${licenseCode}${delimiter}${delimiter}${format(dob, 'd.M.yyyy')}${delimiter}${gender}${delimiter}${athleteType}`;
   const entries: string[] = [];
   if (row['M19 lajit joihin osallistuja ilmoitetaan']?.length > 0) {
     entries.push(...getSport(row['M19 lajit joihin osallistuja ilmoitetaan'], row[''], 'M', '19'));
@@ -130,6 +157,22 @@ function saveFile(text: string) {
   });
 }
 
+async function collectFile(data: KllItem[]) {
+  const result: string[] = [];
+  for (const row of data.filter((it) => it.Etunimi != null)) {
+    const item = await getAthlete(row);
+    if (item) {
+      result.push(item.athlete);
+      item.entries.map((entry) => {
+        result.push(entry);
+      });
+    }
+  };
+  const finalText = result.join(linebreak);
+  saveFile(finalText);
+  console.log('Konversio valmis. Luettu', parsed.data.length, 'urheilijaa.');
+}
+
 if (process.argv.length < 3) {
   throw Error('Anna raportti');
 }
@@ -145,17 +188,4 @@ const ws: XLSX.WorkSheet = wb.Sheets[wsname];
 /* save data */
 const buf = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
 const parsed = Papa.parse<KllItem>(buf, { skipEmptyLines: true, header: true, dynamicTyping: true });
-
-const result: string[] = [];
-parsed.data.filter((it) => it.Etunimi != null).map((row) => {
-  const item = getAthlete(row);
-  if (item) {
-    result.push(item.athlete);
-    item.entries.map((entry) => {
-      result.push(entry);
-    });
-  }
-});
-const finalText = result.join(linebreak);
-saveFile(finalText);
-console.log('Konversio valmis. Luettu', parsed.data.length, 'urheilijaa.');
+collectFile(parsed.data);
