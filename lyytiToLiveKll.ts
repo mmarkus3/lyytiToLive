@@ -83,7 +83,7 @@ function getGender(sport: string) {
 function getSport(sportItem: string, athlete: number, klass: string, age: string) {
   const sports = sportItem.split(sourceDelimiter);
   return sports.map((sport) => {
-    const sportCode = convertSport(sport);
+    const sportCode = convertSport(sport.trim());
     entryIndex++;
     return `&${entryIndex}${delimiter}${athlete}${delimiter}${klass}${delimiter}${age}${delimiter}${sportCode}${delimiter}${delimiter}`;
   })
@@ -91,7 +91,7 @@ function getSport(sportItem: string, athlete: number, klass: string, age: string
 
 function getAthlete(row: KllItem) {
   const gender = getGender(row['Osallistujan sarja']);
-  const licenseCode = `S${row['Sportti-ID: ']}`;
+  const licenseCode = `${row['Sportti-ID: ']}`;
   const abbr = `${row['Koulu jota osallistuja edustaa'][0]}${row['Koulu jota osallistuja edustaa'][1]}${row['Koulu jota osallistuja edustaa'][2]}${row['Koulu jota osallistuja edustaa'][3]}`;
   const athlete = `${row['']}${delimiter}${row.Sukunimi}${delimiter}${row.Etunimi}${delimiter}${row['Koulu jota osallistuja edustaa']}${delimiter}${abbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
   const entries: string[] = [];
