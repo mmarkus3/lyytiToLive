@@ -114,6 +114,10 @@ function getSport(sportItem: string, athlete: number, klass: string, age: string
 async function getAthlete(row: KllItem) {
   const gender = getGender(row['Osallistujan sarja']);
   const licenseCode = `${row['Sportti-ID: ']}`;
+  if (licenseCode == null) {
+    console.error('Urheilijalla ei lisenssiä', row);
+    return;
+  }
   const athleteDB = await getAthleteFromDb(licenseCode);
   if (row.Sukunimi !== athleteDB.Surname || row.Etunimi !== athleteDB.Firstname) {
     console.error('Väärä urheilija', row[''], row.Sukunimi, athleteDB.Surname, row.Etunimi, athleteDB.Firstname, licenseCode);
