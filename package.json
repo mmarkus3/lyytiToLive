@@ -3,13 +3,18 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "npx tsc lyytiToLive.ts",
-    "run": "npm run build && node lyytiToLive.js"
+    "build:hippo": "npx tsc lyytiToLiveHippo.ts",
+    "build:kll": "npx tsc lyytiToLiveKll.ts",
+    "run:hippo": "npm run build:hippo && node lyytiToLiveHippo.js",
+    "run:kll": "npm run build:kll && node lyytiToLiveKll.js"
   },
   "devDependencies": {
+    "@types/papaparse": "^5.3.15",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@types/node": "^20.12.7"
+    "@types/node": "^20.12.7",
+    "papaparse": "^5.5.2",
+    "xlsx": "^0.18.5"
   }
 }

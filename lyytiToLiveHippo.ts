@@ -10,7 +10,7 @@ const currentYear = new Date().getFullYear();
 let entryIndex = 0;
 
 function convertSport(sport: string) {
-  switch(sport) {
+  switch (sport) {
     case 'pallonheitto':
       return 'bt';
     case 'palloheitto':
@@ -44,7 +44,7 @@ function getSport(sportItem: string, athlete: string) {
   if (gender === '') {
     return '';
   }
-  const [ klass, year, sport ] = sportItem.split(' ');
+  const [klass, year, sport] = sportItem.split(' ');
   const it = getKlass(klass, +year);
   const sportCode = convertSport(sport);
   entryIndex++;
@@ -52,7 +52,7 @@ function getSport(sportItem: string, athlete: string) {
 }
 
 function getAthlete(row: string, index: number) {
-  const [ num, firstname, lastname, _email, _phone, sport1, sport2 ] = row.split(sourceDelimiter);
+  const [num, firstname, lastname, _email, _phone, sport1, sport2] = row.split(sourceDelimiter);
   const gender = getGender(sport1);
   const licenseCode = `S${100 + index}`;
   const athlete = `${num.trim()}${delimiter}${lastname}${delimiter}${firstname}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
@@ -62,10 +62,10 @@ function getAthlete(row: string, index: number) {
 }
 
 function saveFile(text: string) {
-  writeFileSync(`lyyti-${new Date().toISOString()}.csv`, text, {
+  writeFileSync(`hippo/lyyti-${new Date().toISOString()}.csv`, text, {
     flag: 'w',
     encoding: 'utf8',
-   });
+  });
 }
 
 if (process.argv.length < 3) {
