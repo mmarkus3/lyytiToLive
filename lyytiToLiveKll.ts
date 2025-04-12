@@ -124,6 +124,10 @@ async function getAthlete(row: KllItem) {
     return;
   }
   const dob = new Date(athleteDB.DOB);
+  if (+format(dob, 'yyyy') !== row['Osallistujan syntymävuosi (kirjoita muodossa esim. 2009)']) {
+    console.error('Väärä syntymävuosi', row[''], row.Sukunimi, row.Etunimi, licenseCode, dob.toLocaleDateString(), row['Osallistujan syntymävuosi (kirjoita muodossa esim. 2009)']);
+    return;
+  }
   const athlete = `${row['']}${delimiter}${row.Sukunimi}${delimiter}${row.Etunimi}${delimiter}${athleteDB.Organization.Name}${delimiter}${athleteDB.Organization.NameShort}${delimiter}${licenseCode}${delimiter}${delimiter}${format(dob, 'd.M.yyyy')}${delimiter}${gender}${delimiter}${athleteType}`;
   const entries: string[] = [];
   if (row['M19 lajit joihin osallistuja ilmoitetaan']?.length > 0) {
