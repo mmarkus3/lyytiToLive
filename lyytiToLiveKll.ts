@@ -119,6 +119,10 @@ async function getAthlete(row: KllItem) {
     return;
   }
   const athleteDB = await getAthleteFromDb(licenseCode);
+  if (athleteDB == null) {
+    console.error('Urheilijaa ei löytynyt', row);
+    return;
+  }
   if (row.Sukunimi !== athleteDB.Surname || row.Etunimi !== athleteDB.Firstname) {
     console.error('Väärä urheilija', row[''], row.Sukunimi, athleteDB.Surname, row.Etunimi, athleteDB.Firstname, licenseCode);
     return;
