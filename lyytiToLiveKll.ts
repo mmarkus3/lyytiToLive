@@ -82,6 +82,8 @@ function convertSport(sport: string) {
       return '3000mw';
     case '2000m kävely':
       return '2000mw';
+    case '3-loikka':
+      return 'tj';
     default:
       return sport;
   }
