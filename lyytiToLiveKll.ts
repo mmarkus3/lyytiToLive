@@ -62,6 +62,10 @@ function convertSport(sport: string) {
       return '400mh';
     case '300m aj':
       return '300mh';
+    case '60m aj':
+      return '60mh';
+    case '80m aj':
+      return '80mh';
     case '200m aj':
       return '200mh';
     case '110m aj':
