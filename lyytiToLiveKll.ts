@@ -78,6 +78,12 @@ function convertSport(sport: string) {
       return '2000mst';
     case '1500m esteet':
       return '1500mst';
+    case '3000m ej':
+      return '3000mst';
+    case '2000m ej':
+      return '2000mst';
+    case '1500m ej':
+      return '1500mst';
     case '3000m kävely':
       return '3000mw';
     case '2000m kävely':
