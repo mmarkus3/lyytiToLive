@@ -124,7 +124,7 @@ async function getAthlete(row: KllItem) {
     return;
   }
   if (row.Sukunimi !== athleteDB.Surname || row.Etunimi !== athleteDB.Firstname) {
-    console.error('Väärä urheilija', row[''], row.Sukunimi, athleteDB.Surname, row.Etunimi, athleteDB.Firstname, licenseCode);
+    console.error('Väärä urheilija', row[''], row.Sukunimi, row.Etunimi, athleteDB.Surname, athleteDB.Firstname, licenseCode);
     return;
   }
   const dob = new Date(athleteDB.DOB);
