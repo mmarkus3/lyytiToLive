@@ -39,6 +39,7 @@ const sourceDelimiter = ',';
 const delimiter = ';';
 const athleteType = '0';
 let entryIndex = 0;
+let empty = 0;
 
 function convertSport(sport: string) {
   switch (sport) {
@@ -57,6 +58,8 @@ function convertSport(sport: string) {
     case 'kiekko':
       return 'dt';
     case 'keihäs':
+      return 'jt';
+    case 'Keihäs':
       return 'jt';
     case '400m aj':
       return '400mh';
@@ -83,6 +86,8 @@ function convertSport(sport: string) {
     case '2000m ej':
       return '2000mst';
     case '1500m ej':
+      return '1500mst';
+    case '1500m ej.':
       return '1500mst';
     case '3000m kävely':
       return '3000mw';
@@ -124,6 +129,9 @@ function getSport(sportItem: string, athlete: number, klass: string, age: string
 }
 
 async function getAthlete(row: KllItem) {
+  if (row['Sportti-ID: '] == null) {
+    empty += 1;
+  }
   const gender = getGender(row['Osallistujan sarja']);
   const licenseCode = `${row['Sportti-ID: ']}`;
   if (licenseCode == null) {
@@ -194,7 +202,7 @@ async function collectFile(data: KllItem[]) {
   };
   const finalText = result.join(linebreak);
   saveFile(finalText);
-  console.log('Konversio valmis. Luettu', parsed.data.length, 'urheilijaa.');
+  console.log('Konversio valmis. Luettu', parsed.data.length, 'urheilijaa. Tyhjiä ', empty, '.');
 }
 
 if (process.argv.length < 3) {
