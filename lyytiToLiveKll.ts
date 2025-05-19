@@ -39,7 +39,6 @@ const sourceDelimiter = ',';
 const delimiter = ';';
 const athleteType = '0';
 let entryIndex = 0;
-let empty = 0;
 
 function convertSport(sport: string) {
   switch (sport) {
@@ -129,9 +128,6 @@ function getSport(sportItem: string, athlete: number, klass: string, age: string
 }
 
 async function getAthlete(row: KllItem) {
-  if (row['Sportti-ID: '] == null) {
-    empty += 1;
-  }
   const gender = getGender(row['Osallistujan sarja']);
   const licenseCode = `${row['Sportti-ID: ']}`;
   if (licenseCode == null) {
@@ -191,6 +187,7 @@ function saveFile(text: string) {
 
 async function collectFile(data: KllItem[]) {
   const result: string[] = [];
+  const empty = data.filter((it) => it.Etunimi == null).length;
   for (const row of data.filter((it) => it.Etunimi != null)) {
     const item = await getAthlete(row);
     if (item) {
@@ -202,7 +199,7 @@ async function collectFile(data: KllItem[]) {
   };
   const finalText = result.join(linebreak);
   saveFile(finalText);
-  console.log('Konversio valmis. Luettu', parsed.data.length, 'urheilijaa. Tyhjiä ', empty, '.');
+  console.log('Konversio valmis. Luettu', data.length, ',', 'urheilijaa. Tyhjiä ', empty);
 }
 
 if (process.argv.length < 3) {
