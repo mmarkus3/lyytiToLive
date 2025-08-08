@@ -1,4 +1,4 @@
-import { writeFileSync, readFile } from 'fs';
+import { writeFileSync } from 'fs';
 import * as XLSX from 'xlsx';
 import * as Papa from 'papaparse';
 import axios from 'axios';

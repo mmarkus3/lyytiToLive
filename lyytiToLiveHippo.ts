@@ -1,4 +1,13 @@
 import { writeFileSync, readFile } from 'fs';
+import * as XLSX from 'xlsx';
+import * as Papa from 'papaparse';
+
+interface HippoItem {
+  ['']: number;
+  ['Lapsen etunimi']: string;
+  ['Lapsen sukunimi']: string;
+  ['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. ']: string;
+}
 
 const linebreak = '\r\n';
 const sourceDelimiter = ',';
@@ -39,7 +48,7 @@ function getGender(sport: string) {
   return '';
 }
 
-function getSport(sportItem: string, athlete: string) {
+function getSport(sportItem: string, athlete: number) {
   const gender = getGender(sportItem);
   if (gender === '') {
     return '';
@@ -51,14 +60,20 @@ function getSport(sportItem: string, athlete: string) {
   return `&${entryIndex}${delimiter}${athlete}${delimiter}${it.klass}${delimiter}${it.age}${delimiter}${sportCode}${delimiter}${delimiter}`;
 }
 
-function getAthlete(row: string, index: number) {
-  const [num, firstname, lastname, _email, _phone, sport1, sport2] = row.split(sourceDelimiter);
-  const gender = getGender(sport1);
-  const licenseCode = `S${100 + index}`;
-  const athlete = `${num.trim()}${delimiter}${lastname}${delimiter}${firstname}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
-  const firstEntry = getSport(sport1.replace('"', '').trim(), num.trim());
-  const secondEntry = getSport(sport2.replace('"', '').trim(), num.trim());
-  return { athlete, firstEntry, secondEntry };
+function getAthlete(row: HippoItem) {
+  const num = row[''];
+  const gender = getGender(row['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. ']);
+  const licenseCode = `S${100 + row['']}`;
+  const athlete = `${row['']}${delimiter}${row['Lapsen sukunimi']}${delimiter}${row['Lapsen etunimi']}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
+  const sports = row['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. '].split(sourceDelimiter);
+  const firstEntry = getSport(sports[0].trim(), num);
+  let secondEntry = null;
+  if (sports.length > 1) {
+    secondEntry = getSport(sports[1].trim(), num);
+    return { athlete, firstEntry, secondEntry };
+  } else {
+    return { athlete, firstEntry };
+  }
 }
 
 function saveFile(text: string) {
@@ -68,30 +83,38 @@ function saveFile(text: string) {
   });
 }
 
+async function collectFile(data: HippoItem[]) {
+  const result: string[] = [];
+  const empty = data.filter((it) => it['Lapsen etunimi'] == null).length;
+  data.map((row) => {
+    const item = getAthlete(row);
+    result.push(item.athlete);
+    if (item.firstEntry !== '') {
+      result.push(item.firstEntry);
+    }
+    if (item.secondEntry) {
+      result.push(item.secondEntry);
+    }
+  });
+  const finalText = result.join(linebreak);
+  saveFile(finalText);
+  console.log('Konversio valmis. Luettu', data.length, ',', 'urheilijaa. Tyhjiä ', empty);
+}
+
 if (process.argv.length < 3) {
   throw Error('Anna raportti');
 }
 
 const sourceFileName = process.argv[2];
 
-readFile(sourceFileName, 'utf8', (err, data) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  const result = [];
-  const rows = data.split(linebreak);
-  rows.map((row, index) => {
-    const item = getAthlete(row, index);
-    result.push(item.athlete);
-    if (item.firstEntry !== '') {
-      result.push(item.firstEntry);
-    }
-    if (item.secondEntry !== '') {
-      result.push(item.secondEntry);
-    }
-  });
-  const finalText = result.join(linebreak);
-  saveFile(finalText);
-  console.log('Konversio valmis. Luettu', rows.length, 'urheilijaa.');
-});
+const wb: XLSX.WorkBook = XLSX.readFile(sourceFileName, { type: 'binary' });
+
+/* grab first sheet */
+const wsname: string = wb.SheetNames[0];
+const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+
+/* save data */
+const buf = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+const parsed = Papa.parse<HippoItem>(buf, { skipEmptyLines: true, header: true, dynamicTyping: true });
+
+collectFile(parsed.data);
