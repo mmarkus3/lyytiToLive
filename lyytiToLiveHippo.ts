@@ -2,11 +2,13 @@ import { writeFileSync, readFile } from 'fs';
 import * as XLSX from 'xlsx';
 import * as Papa from 'papaparse';
 
+const sportColumnName = 'Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. '
+
 interface HippoItem {
   ['']: number;
   ['Lapsen etunimi']: string;
   ['Lapsen sukunimi']: string;
-  ['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. ']: string;
+  [sportColumnName]: string;
 }
 
 const linebreak = '\r\n';
@@ -62,10 +64,10 @@ function getSport(sportItem: string, athlete: number) {
 
 function getAthlete(row: HippoItem) {
   const num = row[''];
-  const gender = getGender(row['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. ']);
+  const gender = getGender(row[sportColumnName]);
   const licenseCode = `S${100 + row['']}`;
   const athlete = `${row['']}${delimiter}${row['Lapsen sukunimi']}${delimiter}${row['Lapsen etunimi']}${delimiter}${defaultClub}${delimiter}${defaultClubAbr}${delimiter}${licenseCode}${delimiter}${delimiter}${delimiter}${gender}${delimiter}${athleteType}`;
-  const sports = row['Sarja ja lajitValitse sarja/sarjat, joihin lapsi osallistuu ja ilmoita jokainen lapsi erikseen. Osallistua voi joko yhteen tai kahteen lajiin. '].split(sourceDelimiter);
+  const sports = row[sportColumnName].split(sourceDelimiter);
   const firstEntry = getSport(sports[0].trim(), num);
   let secondEntry = null;
   if (sports.length > 1) {
